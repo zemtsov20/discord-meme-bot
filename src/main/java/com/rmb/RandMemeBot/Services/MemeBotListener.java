@@ -1,7 +1,12 @@
 package com.rmb.RandMemeBot.Services;
 
 import com.rmb.RandMemeBot.Bots.Bot;
-import com.rmb.RandMemeBot.Components.*;
+import com.rmb.RandMemeBot.Components.EtuImgUrlFromLink;
+import com.rmb.RandMemeBot.Components.ImgUrlFromLink;
+import com.rmb.RandMemeBot.Components.JokeHtmlParser;
+import com.rmb.RandMemeBot.Components.Sender;
+import com.rmb.RandMemeBot.Components.VkParsers.VkImageParser;
+import com.rmb.RandMemeBot.Components.VkParsers.VkJokeParser;
 import com.rmb.RandMemeBot.Utils.MainCommand;
 import com.rmb.RandMemeBot.Utils.MemeCommand;
 import lombok.RequiredArgsConstructor;
@@ -12,16 +17,14 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import static com.rmb.RandMemeBot.Bots.Bot.etuLinks;
-
 @RequiredArgsConstructor
-@Component
+@Service
 public class MemeBotListener extends ListenerAdapter {
 
     private final VkImageParser[] vkImageParsers = new VkImageParser[8];
@@ -49,6 +52,9 @@ public class MemeBotListener extends ListenerAdapter {
     @Autowired
     private ImgUrlFromLink imgUrlFromLink;
 
+    @Autowired
+    private EtuImgUrlFromLink etuImgUrlFromLink;
+
     @Override
     public void onReady(@NotNull ReadyEvent event) {
         System.out.println("I am ready to go!");
@@ -72,7 +78,7 @@ public class MemeBotListener extends ListenerAdapter {
             }
             if(vkImageParsers[memeCommandId] == null)
                 vkImageParsers[memeCommandId] = new VkImageParser(GROUP_IDS[memeCommandId]);
-            sender.sendImg(vkImageParsers[memeCommandId].getImage(), event);
+            sender.sendImg(vkImageParsers[memeCommandId].getItem(), event);
         }
 
         else if (message.contains(MainCommand.germanJoke.toString())) {
@@ -93,7 +99,7 @@ public class MemeBotListener extends ListenerAdapter {
         }
 
         else if(message.contains(MainCommand.screenshot.toString())) {
-            String url = imgUrlFromLink.getImgUrl("https://prnt.sc/" + RandomStringUtils.random(6, false, true), 1);
+            String url = imgUrlFromLink.getImgUrl("https://prnt.sc/" + RandomStringUtils.random(6, false, true));
 
             if(url.isEmpty()) {
                 event.getChannel().sendMessage("Не повезло(\nРандомный скрин удален").queue();
@@ -108,8 +114,7 @@ public class MemeBotListener extends ListenerAdapter {
                 event.getChannel().sendMessage("Ты не из ЛЭТИ").queue();
                 return;
             }
-            int random = new Random().nextInt(0, etuLinks.length);
-            String url = imgUrlFromLink.getImgUrl(etuLinks[random], 0);
+            String url = etuImgUrlFromLink.getImgUrl();
             if(url.isEmpty()) {
                 event.getChannel().sendMessage("Ты не из ЛЭТИ\nЛОВИТЕ ИТМОШНИКА").queue();
                 return;
@@ -119,7 +124,7 @@ public class MemeBotListener extends ListenerAdapter {
         }
 
         else if(message.contains(MainCommand.joke.toString())) {
-            String jokeStr = jokeParser.getJoke();
+            String jokeStr = jokeParser.getItem();
 
             EmbedBuilder joke = new EmbedBuilder().setTitle("Анекдот #" + RandomStringUtils.random(4, false, true))
                     .setDescription(jokeStr);

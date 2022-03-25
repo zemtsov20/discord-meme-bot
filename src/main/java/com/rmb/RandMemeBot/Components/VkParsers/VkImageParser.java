@@ -1,44 +1,31 @@
-package com.rmb.RandMemeBot.Components;
+package com.rmb.RandMemeBot.Components.VkParsers;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 @Component
-public class VkImageParser {
-
-    private final List<String> items = new ArrayList<>();
-    private final List<Integer> notGot = new ArrayList<>();
+public class VkImageParser extends VkParser {
     private int groupId;
-    private int offset = 0;
     String album = "wall";
 
     public VkImageParser() {}
 
     public VkImageParser(int groupId) {
         this.groupId = groupId;
+        this.offset = 0;
         if (groupId == 29640829)
             this.album = "141420217";
-        newImgUrls();
+        newItem();
     }
 
-    public String getImage()  {
-        if(items.isEmpty())
-            newImgUrls();
-        int rand = new Random().nextInt(0, 100);
-        return items.remove(rand % items.size());
-    }
-
-    private void newImgUrls() {
+    private void newItem() {
         if(notGot.isEmpty())
             for (int i = 0; i < 6; i++)
                 notGot.add(i);

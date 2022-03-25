@@ -1,4 +1,4 @@
-package com.rmb.RandMemeBot.Components;
+package com.rmb.RandMemeBot.Components.VkParsers;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -9,40 +9,27 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 @Component
-public class VkJokeParser {
-
+public class VkJokeParser extends VkParser {
     static String VK_TOKEN;
-    List<String> items = new ArrayList<>();
-    List<Integer> notGot = new ArrayList<>();
-    int offset = 50;
 
     public VkJokeParser(@Value("${vk_access_token}") String token) {
         VK_TOKEN = token;
-        newJokes();
+        this.offset = 50;
+        newItem();
     }
 
-    public String getJoke() {
-        if(items.isEmpty())
-            newJokes();
-        int rand = new Random().nextInt(0, 100);
-        return items.remove(rand % items.size());
-    }
-
-    private void newJokes() {
+    private void newItem() {
         if(notGot.isEmpty())
             for (int i = 2; i < 20; i++)
                 notGot.add(i);
         try {
             var json = new JSONObject(IOUtils.toString(
                     new URL("https://api.vk.com/method/wall.get?v=5.131&" +
-                            "access_token=" + VK_TOKEN +
-                            "&domain=" + "anekdotikategoriib" + "&offset=" + offset +
-                            "&count=50"), StandardCharsets.UTF_8));
+                            "access_token=" + VK_TOKEN + "&domain=" + "anekdotikategoriib" +
+                            "&offset=" + offset + "&count=50"), StandardCharsets.UTF_8));
             this.offset = notGot.remove(new Random().nextInt(0, notGot.size())) * 50;
             JSONArray postsArr = json.getJSONObject("response").getJSONArray("items");
             for (int i = 0; i < postsArr.length(); i++) {
